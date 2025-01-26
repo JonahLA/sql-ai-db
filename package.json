@@ -1,0 +1,15 @@
+{
+  "name": "sql-ai-db",
+  "version": "1.0.0",
+  "description": "AI interface for a dummy database allowing users to retrieve data from the database using natural language. Project for BYU CS 452.",
+  "scripts": {
+    "compile": "npx tsc",
+    "start": "node dist/app.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^5.7.3"
+  }
+}
