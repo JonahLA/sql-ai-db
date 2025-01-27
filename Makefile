@@ -8,5 +8,8 @@ up:
 down:
 	docker compose -f $(DOCKER_COMPOSE) -p $(PROJECT_NAME) down
 
+destroy:
+	docker compose -f $(DOCKER_COMPOSE) -p $(PROJECT_NAME) down -v
+
 db-term:
 	docker compose -f $(DOCKER_COMPOSE) -p $(PROJECT_NAME) exec db mysql -u user -p

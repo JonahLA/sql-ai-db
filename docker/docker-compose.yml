@@ -30,6 +30,7 @@ services:
     networks:
       - app_network
     volumes:
+      - ./db/setup:/docker-entrypoint-initdb.d
       - db_data:/var/lib/mysql
 
 networks:
