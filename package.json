@@ -5,7 +5,8 @@
   "scripts": {
     "compile": "npx tsc",
     "setenv": "export $(cat .env)",
-    "start": "node --no-deprecation dist/app.js"
+    "start": "node --no-deprecation dist/app.js",
+    "dev": "npm run compile && npm run start"
   },
   "keywords": [],
   "author": "",
