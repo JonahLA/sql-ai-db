@@ -12,6 +12,8 @@ services:
     env_file: app/.env
     ports:
       - "3000:3000"
+    networks:
+      - app_network
     depends_on:
       - db
 
@@ -19,14 +21,20 @@ services:
     image: mysql:5.7
     container_name: sql-ai-db
     environment:
-      MYSQL_ROOT_PASSWORD: example
-      MYSQL_DATABASE: mydatabase
+      MYSQL_ROOT_PASSWORD: pass
+      MYSQL_DATABASE: sql-ai
       MYSQL_USER: user
-      MYSQL_PASSWORD: password
+      MYSQL_PASSWORD: pass
     ports:
       - "3306:3306"
+    networks:
+      - app_network
     volumes:
       - db_data:/var/lib/mysql
+
+networks:
+  app_network:
+    driver: bridge
 
 volumes:
   node_modules:
