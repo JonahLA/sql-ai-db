@@ -12,6 +12,8 @@ up:
 down:
 	docker compose -f $(DOCKER_COMPOSE) -p $(PROJECT_NAME) down
 
+restart: down up
+
 destroy:
 	docker compose -f $(DOCKER_COMPOSE) -p $(PROJECT_NAME) down -v
 

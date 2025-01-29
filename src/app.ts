@@ -1,5 +1,5 @@
 import OpenAI from 'openai'
-import { readFileSync } from 'node:fs'
+import { readFileSync, writeFileSync } from 'node:fs'
 import { resolve } from 'node:path'
 import { query } from './db'
 
@@ -62,34 +62,70 @@ const strategies: { [key: string]: string } = {
 }
 const questions = [
     'What items has Gianna tried?',
-    'What location(s) has/have been tried the most?',
-    'What is the average price of items tried from Walmart?'
+    'What is the name/are the names of the location(s) that has/have been tried the most?',
+    'What is the average price of items tried from Walmart?',
+    'What life missions does Anne have?',
+    'What is the most popular life mission?',
+    'Which location serves the item with the highest cost?',
+    'Which location serves the items with the lowest rating on average?',
+    'What is the average rating of items from Walmart?'
+]
+const strategiesList = [
+    'zero-shot',
+    'single-domain_single-shot'
 ]
 
 async function main() {
-    const question = questions[0]
-    const strategy = strategies['zero-shot']
+    let strategyResults: { [key: string]: any } = {}
 
-    // === GENERATE SQL QUERY ===
-    const sqlResponse = await getChatGptResponse(`${strategy} ${question}`)
-    const parsedSqlResponse = parseSql(sqlResponse)
+    for (const strategyName of strategiesList) {
+        let questionResults: any[] = []
 
-    // === RUN SQL QUERY ===
-    let queryResult = undefined
-    let queryError = undefined
-    try {
-        queryResult = await executeSqlQuery(parsedSqlResponse)
-    } catch (error) {
-        console.error(error)
-        queryError = error
+        await Promise.all(questions.map(async question => {
+            const strategy = strategies[strategyName]
+            console.log('\t---')
+
+            // === GENERATE SQL QUERY ===
+            const sqlResponse = await getChatGptResponse(`${strategy} ${question}`)
+            const parsedSqlResponse = parseSql(sqlResponse)
+            console.log('\t', parsedSqlResponse)
+        
+            // === RUN SQL QUERY ===
+            let queryResult = undefined
+            let queryError = undefined
+            try {
+                queryResult = await executeSqlQuery(parsedSqlResponse)
+                console.log('\t', queryResult)
+            } catch (error) {
+                console.error('\t', error)
+                queryError = error
+            }
+        
+            // === GENERATE NATURAL LANGUAGE RESPONSE ===
+            let friendlyResponse = undefined
+            if (queryResult) {
+                let friendlyResponsePrompt = `I asked a question ${question} and the response from my database was \`\`\`${queryResult}\`\`\`. Can you interpret the data in the response so you can answer my question in a friendly way? Please do not give any other suggestions or chatter.`
+                friendlyResponse = await getChatGptResponse(friendlyResponsePrompt)
+                console.log('\t', friendlyResponse)
+            }
+
+            questionResults.push({
+                'question': question,
+                'sql': parsedSqlResponse,
+                'queryResult': queryResult,
+                'friendlyResponse': friendlyResponse,
+                'error': queryError
+            })
+        }))
+
+        strategyResults[strategyName] = questionResults
     }
 
-    // === GENERATE NATURAL LANGUAGE RESPONSE ===
-    if (queryResult) {
-        let friendlyResponsePrompt = `I asked a question ${question} and the response from my database was \`\`\`${queryResult}\`\`\`. Can you interpret the data in the response so you can answer my question in a friendly way? Please do not give any other suggestions or chatter.`
-        let friendlyResponse = await getChatGptResponse(friendlyResponsePrompt)
-        console.log(friendlyResponse)
-    }
+    const time = new Date().toISOString().replace(/[:.]/g, '-')
+    const outputPath = resolve(__dirname, `../out/results_${time}.json`)
+
+    writeFileSync(outputPath, JSON.stringify(strategyResults, null, 2))
+    console.log(`Results written to ${outputPath}`)
 }
 
 main()
