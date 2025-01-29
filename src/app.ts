@@ -31,6 +31,25 @@ function parseSql(response: string): string {
     return result
 }
 
+function formatQueryResults(results: any[]): string {
+    return results.map(row => {
+        return Object.values(row).join(', ')
+    }).join('\n')
+}
+
+async function executeSqlQuery(sql: string): Promise<string> {
+    const rawQueryResults = await query(sql)
+    let formattedResults = ''
+
+    if (Array.isArray(rawQueryResults)) {
+        formattedResults = formatQueryResults(rawQueryResults)
+    } else {
+        formattedResults = rawQueryResults.toString()
+    }
+
+    return formattedResults
+}
+
 const setupSqlScript: string = '```mysql' + readFileSync(resolve(__dirname, '../docker/db/setup/01_create-tables.sql'), 'utf-8') + '```'
 const commonSqlOnlyRequest = 'Give me a MySQL SELECT statement that answers the question below for the tables provided above. Only respond with MySQL syntax. If there is an error, do not explain it!'
 const examples: { [key: number]: string } = {
@@ -52,28 +71,25 @@ async function main() {
     const strategy = strategies['zero-shot']
 
     // === GENERATE SQL QUERY ===
-    let sqlResponse = await getChatGptResponse(`${strategy} ${question}`)
-    let parsedSqlResponse = parseSql(sqlResponse)
+    const sqlResponse = await getChatGptResponse(`${strategy} ${question}`)
+    const parsedSqlResponse = parseSql(sqlResponse)
 
     // === RUN SQL QUERY ===
     let queryResult = undefined
+    let queryError = undefined
     try {
-        queryResult = await query(parsedSqlResponse)
+        queryResult = await executeSqlQuery(parsedSqlResponse)
     } catch (error) {
         console.error(error)
-    }
-
-    if (!queryResult) {
-        // TODO: should never get to this point, really
-        console.error('Something went wrong.')
-        process.exit(1)
+        queryError = error
     }
 
     // === GENERATE NATURAL LANGUAGE RESPONSE ===
-    let friendlyResponsePrompt = `I asked a question ${question} and the response from my database was ${queryResult}. Can you please explain to me the response in a friendly way? Please do not give any other suggestions or chatter.`
-    let friendlyResponse = await getChatGptResponse(friendlyResponsePrompt)
-
-    console.log(friendlyResponse)
+    if (queryResult) {
+        let friendlyResponsePrompt = `I asked a question ${question} and the response from my database was \`\`\`${queryResult}\`\`\`. Can you interpret the data in the response so you can answer my question in a friendly way? Please do not give any other suggestions or chatter.`
+        let friendlyResponse = await getChatGptResponse(friendlyResponsePrompt)
+        console.log(friendlyResponse)
+    }
 }
 
 main()
