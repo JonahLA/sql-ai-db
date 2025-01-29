@@ -1,6 +1,10 @@
 DOCKER_COMPOSE = ./docker/docker-compose.yml
 PROJECT_NAME = sql-ai
 
+build:
+	npm run compile
+	docker compose -f $(DOCKER_COMPOSE) -p $(PROJECT_NAME) build
+
 up:
 	npm run compile
 	docker compose -f $(DOCKER_COMPOSE) -p $(PROJECT_NAME) up -d

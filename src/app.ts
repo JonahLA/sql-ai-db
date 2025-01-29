@@ -1,6 +1,7 @@
 import OpenAI from 'openai'
 import { readFileSync } from 'node:fs'
 import { resolve } from 'node:path'
+import { query } from './db'
 
 const client = new OpenAI({
     apiKey: process.env['OPENAPI_API_KEY']
@@ -47,16 +48,32 @@ const questions = [
 ]
 
 async function main() {
-    const questionToUse = questions[0]
-    const strategyToUse = strategies['zero-shot']
+    const question = questions[0]
+    const strategy = strategies['zero-shot']
 
-    let sqlResponse = await getChatGptResponse(`${strategyToUse} ${questionToUse}`)
-    console.log('BEFORE PARSING: ', sqlResponse)
-
+    // === GENERATE SQL QUERY ===
+    let sqlResponse = await getChatGptResponse(`${strategy} ${question}`)
     let parsedSqlResponse = parseSql(sqlResponse)
-    console.log('\nAFTER PARSING: ', parsedSqlResponse)
 
-    console.log('Done!')
+    // === RUN SQL QUERY ===
+    let queryResult = undefined
+    try {
+        queryResult = await query(parsedSqlResponse)
+    } catch (error) {
+        console.error(error)
+    }
+
+    if (!queryResult) {
+        // TODO: should never get to this point, really
+        console.error('Something went wrong.')
+        process.exit(1)
+    }
+
+    // === GENERATE NATURAL LANGUAGE RESPONSE ===
+    let friendlyResponsePrompt = `I asked a question ${question} and the response from my database was ${queryResult}. Can you please explain to me the response in a friendly way? Please do not give any other suggestions or chatter.`
+    let friendlyResponse = await getChatGptResponse(friendlyResponsePrompt)
+
+    console.log(friendlyResponse)
 }
 
 main()
