@@ -1,0 +1,102 @@
+{
+  "zero-shot": [
+    {
+      "question": "What is the average rating of items from Walmart?",
+      "sql": "\nSELECT AVG(rating) AS average_rating\nFROM TriedItem\nJOIN Location ON TriedItem.location_id = Location.id\nWHERE Location.name = 'Walmart';\n",
+      "queryResult": "5.6000",
+      "friendlyResponse": "The average rating of items from Walmart is 5.6 out of 10."
+    },
+    {
+      "question": "What is the average price of items tried from Walmart?",
+      "sql": "\nSELECT AVG(ti.item_cost) AS average_price\nFROM TriedItem ti\nJOIN Location l ON ti.location_id = l.id\nWHERE l.name = 'Walmart';\n",
+      "queryResult": "4.189999914169311",
+      "friendlyResponse": "The average price of items tried from Walmart is approximately $4.19."
+    },
+    {
+      "question": "What is the name/are the names of the location(s) that has/have been tried the most?",
+      "sql": "\nSELECT L.name\nFROM Location L\nJOIN TriedItem TI ON L.id = TI.location_id\nGROUP BY L.id\nORDER BY COUNT(TI.id) DESC\nLIMIT 1;\n",
+      "queryResult": "Walmart",
+      "friendlyResponse": "The location that has been tried the most, according to your database, is Walmart."
+    },
+    {
+      "question": "Which location serves the item with the highest cost?",
+      "sql": "\nSELECT L.name, T.item_cost\nFROM Location L\nJOIN TriedItem T ON L.id = T.location_id\nORDER BY T.item_cost DESC\nLIMIT 1;\n",
+      "queryResult": "Chik-fil-a, 13.989999771118164",
+      "friendlyResponse": "The location that serves the item with the highest cost is Chik-fil-a, with a price of approximately $13.99."
+    },
+    {
+      "question": "Which location serves the items with the lowest rating on average?",
+      "sql": "\nSELECT l.name, AVG(t.rating) AS average_rating\nFROM Location l\nJOIN TriedItem t ON l.id = t.location_id\nGROUP BY l.id\nORDER BY average_rating ASC\nLIMIT 1;\n",
+      "queryResult": "Arbys, 3.5000",
+      "friendlyResponse": "The location that serves items with the lowest average rating is Arby's, with an average rating of 3.5000."
+    },
+    {
+      "question": "What life missions does Anne have?",
+      "sql": "\nSELECT M.name\nFROM User U\nJOIN UserMission UM ON U.id = UM.user_id\nJOIN Mission M ON UM.mission_id = M.id\nWHERE U.first_name = 'Anne';\n",
+      "queryResult": "Onion Rings\nApple Pie",
+      "friendlyResponse": "It seems that the response refers to specific missions or goals Anne may have related to food, specifically making onion rings and apple pie. These could represent her interests or passions in cooking and enjoying these dishes."
+    },
+    {
+      "question": "What is the most popular life mission?",
+      "sql": "\nSELECT m.name, COUNT(ti.id) AS popularity\nFROM Mission m\nJOIN TriedItem ti ON m.id = ti.mission_id\nGROUP BY m.id\nORDER BY popularity DESC\nLIMIT 1;\n",
+      "queryResult": "Buffalo Sauce, 5",
+      "friendlyResponse": "It seems that the response you received might be a humorous or unexpected take on your question, associating \"buffalo sauce\" with a life mission, possibly implying that enjoying good food or cooking could be a popular aspiration for some. In a friendly way, you could interpret it as suggesting that many people find joy and fulfillment in food-related experiences."
+    },
+    {
+      "question": "What items has Gianna tried?",
+      "sql": "\nSELECT ti.*\nFROM TriedItem ti\nJOIN User u ON ti.user_id = u.id\nWHERE u.first_name = 'Gianna';\n",
+      "queryResult": "6, 2, 3, 2, Fri Mar 01 2024 00:00:00 GMT+0000 (Coordinated Universal Time), 0.9900000095367432, 1\n7, 2, 6, 2, Mon Apr 01 2024 00:00:00 GMT+0000 (Coordinated Universal Time), 3.990000009536743, 6\n8, 2, 4, 2, Tue Apr 02 2024 00:00:00 GMT+0000 (Coordinated Universal Time), 1.9900000095367432, 10",
+      "friendlyResponse": "Gianna has tried the following items:\n\n1. Item with ID 6 on March 1, 2024, priced at approximately $0.99.\n2. Item with ID 7 on April 1, 2024, priced at approximately $3.99.\n3. Item with ID 8 on April 2, 2024, priced at approximately $1.99. \n\nIf you need more details, feel free to ask!"
+    }
+  ],
+  "single-domain_single-shot": [
+    {
+      "question": "What is the average price of items tried from Walmart?",
+      "sql": "\nSELECT AVG(ti.item_cost) AS average_price \nFROM TriedItem ti \nJOIN Location l ON ti.location_id = l.id \nWHERE l.name = 'Walmart';\n",
+      "queryResult": "4.189999914169311",
+      "friendlyResponse": "The average price of items tried from Walmart is approximately $4.19."
+    },
+    {
+      "question": "What is the name/are the names of the location(s) that has/have been tried the most?",
+      "sql": "\nSELECT l.name \nFROM TriedItem ti \nJOIN Location l ON ti.location_id = l.id \nGROUP BY l.id \nORDER BY COUNT(ti.id) DESC \nLIMIT 1;\n",
+      "queryResult": "Walmart",
+      "friendlyResponse": "The location that has been tried the most is Walmart."
+    },
+    {
+      "question": "Which location serves the item with the highest cost?",
+      "sql": "\nSELECT l.* FROM Location l \nJOIN TriedItem ti ON l.id = ti.location_id \nORDER BY ti.item_cost DESC LIMIT 1;\n",
+      "queryResult": "2, Chik-fil-a, 2",
+      "friendlyResponse": "The location with the highest cost item is Chik-fil-a, with an item priced at $2."
+    },
+    {
+      "question": "What is the average rating of items from Walmart?",
+      "sql": "\nSELECT AVG(ti.rating) AS average_rating \nFROM TriedItem ti \nJOIN Location l ON ti.location_id = l.id \nWHERE l.name = 'Walmart';\n",
+      "queryResult": "5.6000",
+      "friendlyResponse": "The average rating of items from Walmart is 5.6 out of 10."
+    },
+    {
+      "question": "Which location serves the items with the lowest rating on average?",
+      "sql": "\nSELECT l.id, l.name, AVG(ti.rating) AS average_rating\nFROM Location l\nJOIN TriedItem ti ON l.id = ti.location_id\nGROUP BY l.id\nORDER BY average_rating ASC\nLIMIT 1;\n",
+      "queryResult": "3, Arbys, 3.5000",
+      "friendlyResponse": "The location that serves the items with the lowest average rating is Arby's, with an average rating of 3.5."
+    },
+    {
+      "question": "What life missions does Anne have?",
+      "sql": "\nSELECT m.* FROM Mission m JOIN UserMission um ON m.id = um.mission_id JOIN User u ON um.user_id = u.id WHERE u.first_name = 'Anne';\n",
+      "queryResult": "1, Onion Rings\n4, Apple Pie",
+      "friendlyResponse": "It seems that the response you received lists some favorite food items associated with Anne. Although these may not directly represent life missions, they could indicate her interests or simple joys in life. So, while Anne may not have specific life missions stated in the data, it's clear that she enjoys onion rings and apple pie!"
+    },
+    {
+      "question": "What is the most popular life mission?",
+      "sql": "\nSELECT m.name, COUNT(um.mission_id) AS popularity\nFROM Mission m\nJOIN UserMission um ON m.id = um.mission_id\nGROUP BY m.id\nORDER BY popularity DESC\nLIMIT 1;\n",
+      "queryResult": "Buffalo Sauce, 2",
+      "friendlyResponse": "It seems there may have been a mix-up in the response you received. The phrase \"Buffalo Sauce, 2\" doesn't relate to life missions. Life missions often revolve around personal fulfillment, helping others, or pursuing passions. If you have a specific aspect of life missions you'd like to explore, feel free to ask!"
+    },
+    {
+      "question": "What items has Gianna tried?",
+      "sql": "\nSELECT ti.* FROM TriedItem ti JOIN User u ON ti.user_id = u.id WHERE u.first_name = 'Gianna';\n",
+      "queryResult": "6, 2, 3, 2, Fri Mar 01 2024 00:00:00 GMT+0000 (Coordinated Universal Time), 0.9900000095367432, 1\n7, 2, 6, 2, Mon Apr 01 2024 00:00:00 GMT+0000 (Coordinated Universal Time), 3.990000009536743, 6\n8, 2, 4, 2, Tue Apr 02 2024 00:00:00 GMT+0000 (Coordinated Universal Time), 1.9900000095367432, 10",
+      "friendlyResponse": "Gianna has tried the following items:\n\n1. Item 6 on March 1, 2024, with a value of 0.99.\n2. Item 6 on April 1, 2024, with a value of 3.99.\n3. Item 4 on April 2, 2024, with a value of 1.99.\n\nIf you have any other questions, feel free to ask!"
+    }
+  ]
+}
